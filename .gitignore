@@ -1,5 +1,6 @@
 project/api_testing.py
 project/config.py
 project/.DS_Store
+project/example_forecast.json
 __pycache__
 .DS_Store
