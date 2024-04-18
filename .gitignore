@@ -1,3 +1,5 @@
 project/api_testing.py
 project/config.py
+project/.DS_Store
 __pycache__
+.DS_Store
