@@ -1,6 +1,7 @@
 import requests
 import json
 import config
+import swagger_client
 
 ### RapidAPI - Utility Functions
 def get_moon_phase(lat, lon):
