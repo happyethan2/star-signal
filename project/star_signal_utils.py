@@ -40,11 +40,10 @@ def validate_days(days):
     if not days.isdigit():
         raise ValueError(f"Days '{days}' must be a string representation of an integer")
     try:
-        days_int = int(days)  # Attempt to convert to integer
-        if not 1 <= days_int <= 10:  # Check if it's between 1 and 10
+        days_int = int(days)
+        if not 1 <= days_int <= 10:
             raise ValueError(f"Days '{days}' must be an integer between 1 and 10 inclusive")
     except ValueError:
-        # This will catch cases where conversion to integer fails
         raise ValueError(f"Days '{days}' must be a valid integer between 1 and 10 inclusive")
     
 
@@ -57,7 +56,6 @@ def get_forecast(location, days, aqi='no', alerts='no'):
     return send_api_request(url)
 
 
-# Define the function to process the weather data as previously discussed
 def process_weather_data(weather_data, day=None):
     results = []
     try:
