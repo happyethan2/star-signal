@@ -5,6 +5,7 @@ import requests
 import json
 import config
 import swagger_client
+import numpy as np
 
 
 ### RapidAPI - Utility Functions
@@ -219,7 +220,29 @@ def calculate_suitability(processed_data):
         dict: Modeled suitability scores for each condition.
     """
 
-    def logistic_function(x, condition, L=1, k=1, x0=0):
+    def log_function(x, A, B, k, x0, condition=None):
+        """
+        This function models a logarithmic function with parameters A, B, k, and x0.
+
+        Args:
+            x (float): Input value for the logarithmic function.
+            A (float): Scaling factor.
+            B (float): Vertical shift.
+            k (float): Growth rate.
+            x0 (float): Midpoint of the function.
+            condition (int): The condition being modelled.
+                1: visibility (km),
+        """
+
+        # Ensure we don't pass a non-positive value to the logarithm
+        inside_log = k * (x - x0)
+        if inside_log <= 0:
+            raise ValueError("k * (x1 - x0) must be positive to evaluate the natural log.")
+        
+        output = A * np.log(inside_log) + B
+        return output
+
+    def logistic_function(x, L, k, x0, condition=None):
         """
         This function models a logistic function with parameters L, k, and x0.
         The output is arbitrarily capped at 100 due to imperfect parameter estimation.
@@ -230,14 +253,16 @@ def calculate_suitability(processed_data):
             k (float): Logistic growth rate.
             x0 (float): Midpoint of the function.
             condition (int): The condition being modelled.
-                1: cloud,
-                2: moon
+                1: cloud (%),
+                2: moon,
+                3: moon_presence,
+                4: moon_illumination,
         Returns:
             float: Output value of the logistic function.
         """
 
         # Validate condition
-        if condition not in [1, 2, 3]:
+        if condition not in [1, 2, 3, 4, 5] and condition is not None:
             raise ValueError("Invalid condition: Must be 1 (cloud) or 2 (moon)")
         
         # Evaluate function
@@ -247,58 +272,86 @@ def calculate_suitability(processed_data):
         if output > 100:
                 return 100
 
-        # Minimum output value based on condition type
+        # Cloud: 30% or more is unsuitable
         if condition == 1:
-            if output <= 30:
+            if x >= 30:
                 return 0
+        # Moon Presence: 50% or more is unsuitable
         if condition == 2:
-            if output <= 50:
+            if x >= 50:
                 return 0
+        # Moon Illumination: 40% or more is unsuitable
         if condition == 3:
-            if output <= 40:
+            if x >= 40:
                 return 0
+        # Wind Speed: 40 km/h or more is unsuitable
+        if condition == 4:
+            if x >= 40:
+                return 0
+
         
         return output
     
 
     avg_cloud_suitability = logistic_function(
-        processed_data['avg_cloud'], 1,
+        processed_data['avg_cloud'],
         config.SUITABILITY_PARAMS['cloud']['L'],
         config.SUITABILITY_PARAMS['cloud']['k'],
-        config.SUITABILITY_PARAMS['cloud']['x0']
+        config.SUITABILITY_PARAMS['cloud']['x0'], 1
     )
     min_cloud_suitability = logistic_function(
-        processed_data['min_cloud'], 1,
+        processed_data['min_cloud'],
         config.SUITABILITY_PARAMS['cloud']['L'],
         config.SUITABILITY_PARAMS['cloud']['k'],
-        config.SUITABILITY_PARAMS['cloud']['x0']
+        config.SUITABILITY_PARAMS['cloud']['x0'], 1
     )
     max_cloud_suitability = logistic_function(
-        processed_data['max_cloud'], 1,
+        processed_data['max_cloud'],
         config.SUITABILITY_PARAMS['cloud']['L'],
         config.SUITABILITY_PARAMS['cloud']['k'],
-        config.SUITABILITY_PARAMS['cloud']['x0']
+        config.SUITABILITY_PARAMS['cloud']['x0'], 1
     )
     moon_presence_suitability = logistic_function(
-        processed_data['moon_presence'], 2,
+        processed_data['moon_presence'],
         config.SUITABILITY_PARAMS['moon_presence']['L'],
         config.SUITABILITY_PARAMS['moon_presence']['k'],
-        config.SUITABILITY_PARAMS['moon_presence']['x0']
+        config.SUITABILITY_PARAMS['moon_presence']['x0'], 2
     )
     moon_illumination_suitability = logistic_function(
-        processed_data['moon_illumination'], 3,
+        processed_data['moon_illumination'],
         config.SUITABILITY_PARAMS['moon_presence']['L'],
         config.SUITABILITY_PARAMS['moon_presence']['k'],
-        config.SUITABILITY_PARAMS['moon_presence']['x0']
+        config.SUITABILITY_PARAMS['moon_presence']['x0'], 3
     )
-
+    wind_speed_suitability = logistic_function(
+        processed_data['wind_speed_kph'],
+        config.SUITABILITY_PARAMS['wind_speed']['L'],
+        config.SUITABILITY_PARAMS['wind_speed']['k'],
+        config.SUITABILITY_PARAMS['wind_speed']['x0'], 4
+    )
+    humidity_suitability = logistic_function(
+        processed_data['humidity'],
+        config.SUITABILITY_PARAMS['humidity']['L'],
+        config.SUITABILITY_PARAMS['humidity']['k'],
+        config.SUITABILITY_PARAMS['humidity']['x0']
+    )
+    visibility_suitability = log_function(
+        processed_data['visibility_km'],
+        config.SUITABILITY_PARAMS['visibility']['A'],
+        config.SUITABILITY_PARAMS['visibility']['B'],
+        config.SUITABILITY_PARAMS['visibility']['k'],
+        config.SUITABILITY_PARAMS['visibility']['x0']
+    )
 
     suitability = {
         "avg_cloud": avg_cloud_suitability,
         "min_cloud": min_cloud_suitability,
         "max_cloud": max_cloud_suitability,
         "moon_presence": moon_presence_suitability,
-        "moon_illumination": moon_illumination_suitability
+        "moon_illumination": moon_illumination_suitability,
+        "wind_speed": wind_speed_suitability,
+        "humidity_suitability": humidity_suitability,
+        "visibility": visibility_suitability
     }
 
     return suitability
