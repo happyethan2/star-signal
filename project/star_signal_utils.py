@@ -237,7 +237,7 @@ def calculate_suitability(processed_data):
         """
 
         # Validate condition
-        if condition not in [1, 2]:
+        if condition not in [1, 2, 3]:
             raise ValueError("Invalid condition: Must be 1 (cloud) or 2 (moon)")
         
         # Evaluate function
@@ -254,9 +254,12 @@ def calculate_suitability(processed_data):
         if condition == 2:
             if output <= 50:
                 return 0
+        if condition == 3:
+            if output <= 40:
+                return 0
         
         return output
-        
+    
 
     avg_cloud_suitability = logistic_function(
         processed_data['avg_cloud'], 1,
@@ -276,19 +279,26 @@ def calculate_suitability(processed_data):
         config.SUITABILITY_PARAMS['cloud']['k'],
         config.SUITABILITY_PARAMS['cloud']['x0']
     )
-
     moon_presence_suitability = logistic_function(
         processed_data['moon_presence'], 2,
-        config.SUITABILITY_PARAMS['moon']['L'],
-        config.SUITABILITY_PARAMS['moon']['k'],
-        config.SUITABILITY_PARAMS['moon']['x0']
+        config.SUITABILITY_PARAMS['moon_presence']['L'],
+        config.SUITABILITY_PARAMS['moon_presence']['k'],
+        config.SUITABILITY_PARAMS['moon_presence']['x0']
     )
+    moon_illumination_suitability = logistic_function(
+        processed_data['moon_illumination'], 3,
+        config.SUITABILITY_PARAMS['moon_presence']['L'],
+        config.SUITABILITY_PARAMS['moon_presence']['k'],
+        config.SUITABILITY_PARAMS['moon_presence']['x0']
+    )
+
 
     suitability = {
         "avg_cloud": avg_cloud_suitability,
         "min_cloud": min_cloud_suitability,
         "max_cloud": max_cloud_suitability,
-        "moon_presence": moon_presence_suitability
+        "moon_presence": moon_presence_suitability,
+        "moon_illumination": moon_illumination_suitability
     }
 
     return suitability
