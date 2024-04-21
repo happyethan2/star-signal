@@ -6,10 +6,15 @@ location = config.LOCATIONS['Adelaide']
 days = '7'
 
 # forecast = utils.get_forecast(location, days)
+print(f'Sum of Weights: {sum(config.WEIGHTS.values())}')
 
 with open('example_forecast.json', 'r') as file:
     forecast = json.load(file)
 
 result = utils.process_weather_data(forecast, day=days)
 result_pretty = json.dumps(result, indent=4)
+print(result_pretty)
+
+suitability = utils.calculate_suitability(result)
+result_pretty = json.dumps(suitability, indent=4)
 print(result_pretty)
