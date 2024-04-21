@@ -219,44 +219,76 @@ def calculate_suitability(processed_data):
         dict: Modeled suitability scores for each condition.
     """
 
-    def logistic_function(x, L=1, k=1, x0=0):
+    def logistic_function(x, condition, L=1, k=1, x0=0):
         """
         This function models a logistic function with parameters L, k, and x0.
+        The output is arbitrarily capped at 100 due to imperfect parameter estimation.
 
         Args:
             x (float): Input value for the logistic function.
             L (float): Maximum value of the function.
             k (float): Logistic growth rate.
             x0 (float): Midpoint of the function.
+            condition (int): The condition being modelled.
+                1: cloud,
+                2: moon
         Returns:
             float: Output value of the logistic function.
         """
 
+        # Validate condition
+        if condition not in [1, 2]:
+            raise ValueError("Invalid condition: Must be 1 (cloud) or 2 (moon)")
+        
+        # Evaluate function
         output = L / (1 + pow(2.71828, -k * (x - x0)))
-        if output > 100:
-            return 100
-        return output
 
+        # Maximum output value = 100
+        if output > 100:
+                return 100
+
+        # Minimum output value based on condition type
+        if condition == 1:
+            if output <= 30:
+                return 0
+        if condition == 2:
+            if output <= 50:
+                return 0
+        
+        return output
+        
+
+    avg_cloud_suitability = logistic_function(
+        processed_data['avg_cloud'], 1,
+        config.SUITABILITY_PARAMS['cloud']['L'],
+        config.SUITABILITY_PARAMS['cloud']['k'],
+        config.SUITABILITY_PARAMS['cloud']['x0']
+    )
+    min_cloud_suitability = logistic_function(
+        processed_data['min_cloud'], 1,
+        config.SUITABILITY_PARAMS['cloud']['L'],
+        config.SUITABILITY_PARAMS['cloud']['k'],
+        config.SUITABILITY_PARAMS['cloud']['x0']
+    )
+    max_cloud_suitability = logistic_function(
+        processed_data['max_cloud'], 1,
+        config.SUITABILITY_PARAMS['cloud']['L'],
+        config.SUITABILITY_PARAMS['cloud']['k'],
+        config.SUITABILITY_PARAMS['cloud']['x0']
+    )
+
+    moon_presence_suitability = logistic_function(
+        processed_data['moon_presence'], 2,
+        config.SUITABILITY_PARAMS['moon']['L'],
+        config.SUITABILITY_PARAMS['moon']['k'],
+        config.SUITABILITY_PARAMS['moon']['x0']
+    )
 
     suitability = {
-        "avg_cloud": logistic_function(
-            processed_data['avg_cloud'], 
-            config.SUITABILITY_PARAMS['cloud']['L'], 
-            config.SUITABILITY_PARAMS['cloud']['k'], 
-            config.SUITABILITY_PARAMS['cloud']['x0']
-        ),
-        "min_cloud": logistic_function(
-            processed_data['min_cloud'], 
-            config.SUITABILITY_PARAMS['cloud']['L'], 
-            config.SUITABILITY_PARAMS['cloud']['k'], 
-            config.SUITABILITY_PARAMS['cloud']['x0']
-        ),
-        "max_cloud": logistic_function(
-            processed_data['max_cloud'], 
-            config.SUITABILITY_PARAMS['cloud']['L'], 
-            config.SUITABILITY_PARAMS['cloud']['k'], 
-            config.SUITABILITY_PARAMS['cloud']['x0']
-        )
+        "avg_cloud": avg_cloud_suitability,
+        "min_cloud": min_cloud_suitability,
+        "max_cloud": max_cloud_suitability,
+        "moon_presence": moon_presence_suitability
     }
 
     return suitability
