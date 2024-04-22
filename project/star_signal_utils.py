@@ -371,8 +371,9 @@ def calculate_suitability(processed_data):
         "moon_presence": moon_presence_suitability,
         "moon_illumination": moon_illumination_suitability,
         "wind_speed": wind_speed_suitability,
-        "humidity_suitability": humidity_suitability,
-        "visibility": visibility_suitability
+        "humidity": humidity_suitability,
+        "visibility": visibility_suitability,
+        "dewpoint_risk": dewpoint_risk_suitability
     }
 
     return suitability
