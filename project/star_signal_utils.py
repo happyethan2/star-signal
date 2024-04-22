@@ -221,7 +221,7 @@ def process_weather_data(weather_data, days_from_today=None):
     return results
 
 
-def calculate_suitability(processed_data):
+def calculate_suitability_data(processed_data):
     """
     This function models the suitability of astrophotography conditions based on the processed weather data.
     For example, we model the suitability of cloud cover (from 0-1) by passing the cloud% as an input to a logistic function.
@@ -377,3 +377,19 @@ def calculate_suitability(processed_data):
     }
 
     return suitability
+
+
+def getSuitability(suitability_data):
+    """
+    This function calculates the overall suitability score based on the individual suitability scores for each condition.
+    The overall suitability score is the weighted sum of the individual suitability scores.
+
+    Args:
+        suitability_data (dict): Individual suitability scores for each condition.
+    Returns:
+        float: Overall suitability score.
+    """
+    
+    weights = config.WEIGHTS
+    suitability_score = sum([suitability_data[condition] * weights[condition] for condition in suitability_data])
+    return suitability_score
