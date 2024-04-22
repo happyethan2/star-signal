@@ -96,7 +96,7 @@ def get_forecast(location, days, aqi='no', alerts='no'):
     return send_api_request(url)
 
 
-def process_weather_data(weather_data, day=None):
+def process_weather_data(weather_data, days_from_today=None):
     """
     This function processes raw weather data from the Weather API and extracts the relevant information
     for further analysis. The function can return the data for a specific day or all days in the forecast.
@@ -117,12 +117,15 @@ def process_weather_data(weather_data, day=None):
             # Initialise total visible minutes for moon presence calculation
             total_visible_minutes = 0
 
-            # Extract parent data
+            # Extract parent elements
             astro = daily_forecast['astro']
+            day = daily_forecast['day']
+
             sunset = astro['sunset']
             moonrise = astro['moonrise']
             moonset = astro['moonset']
             moon_illumination = astro['moon_illumination']
+            mintemp_c = day['mintemp_c']
             date = daily_forecast['date']
 
             # Parse moonrise and moonset into datetime objects
@@ -145,18 +148,20 @@ def process_weather_data(weather_data, day=None):
 
                 # Extract data of interest
                 temp_c = selected_hour['temp_c']
-                dewpoint_c = selected_hour['dewpoint_c']
+                dewpoint_risk = selected_hour['dewpoint_c'] - mintemp_c
                 wind_speed_kph = selected_hour['wind_kph']
                 humidity = selected_hour['humidity']
                 visibility_km = selected_hour['vis_km']
 
                 # Determine average cloud cover and moon presence
                 cloud_values = []
+                dewpoint_values = []
                 for i in range(5):
                     hour = rounded_time + timedelta(hours=i)
                     hour_str = hour.strftime("%Y-%m-%d %H:%M")
                     if hour_str in hour_data:
                         cloud_values.append(hour_data[hour_str]['cloud'])
+                        dewpoint_values.append(hour_data[hour_str]['dewpoint_c'])
                         
                         # Calculate moon presence within the hour
                         moonrise_time = datetime.strptime(f"{date} {moonrise}", "%Y-%m-%d %I:%M %p")
@@ -178,6 +183,10 @@ def process_weather_data(weather_data, day=None):
                     max_cloud = max(cloud_values)
                 else:
                     avg_cloud, min_cloud, max_cloud = None, None, None
+                
+                if dewpoint_values:
+                    avg_dewpoint = sum(dewpoint_values) / len(dewpoint_values)
+                    min_dewpoint = min(dewpoint_values)
 
                 moon_presence_percent = (total_visible_minutes / (5 * mins_per_hour)) * 100
 
@@ -189,7 +198,10 @@ def process_weather_data(weather_data, day=None):
                     "moonset": moonset,
                     "moon_illumination": moon_illumination,
                     "temp_c": temp_c,
-                    "dewpoint_c": dewpoint_c,
+                    "mintemp_c": mintemp_c,
+                    "avg_dewpoint": avg_dewpoint,
+                    "min_dewpoint": min_dewpoint,
+                    "dewpoint_risk": dewpoint_risk,
                     "wind_speed_kph": wind_speed_kph,
                     "humidity": humidity,
                     "visibility_km": visibility_km,
@@ -202,9 +214,9 @@ def process_weather_data(weather_data, day=None):
     except KeyError as e:
         return {"error": f"Key error: Missing data {str(e)}"}
 
-    if day is not None:
-        validate_days(day)
-        return results[int(day) - 1]
+    if days_from_today is not None:
+        validate_days(days_from_today)
+        return results[int(days_from_today) - 1]
 
     return results
 
@@ -288,8 +300,11 @@ def calculate_suitability(processed_data):
         if condition == 4:
             if x >= 40:
                 return 0
+        # Dewpoint Risk: 6 degrees or more is unsuitable
+        if condition == 5:
+            if x >= 6:
+                return 0
 
-        
         return output
     
 
@@ -341,6 +356,12 @@ def calculate_suitability(processed_data):
         config.SUITABILITY_PARAMS['visibility']['B'],
         config.SUITABILITY_PARAMS['visibility']['k'],
         config.SUITABILITY_PARAMS['visibility']['x0']
+    )
+    dewpoint_risk_suitability = logistic_function(
+        processed_data['dewpoint_risk'],
+        config.SUITABILITY_PARAMS['dewpoint_risk']['L'],
+        config.SUITABILITY_PARAMS['dewpoint_risk']['k'],
+        config.SUITABILITY_PARAMS['dewpoint_risk']['x0'], 5
     )
 
     suitability = {
