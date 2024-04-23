@@ -4,3 +4,4 @@ project/.DS_Store
 project/example_forecast.json
 __pycache__
 .DS_Store
+project/output_data

@@ -412,3 +412,36 @@ def get_suitability_data(calculated_data):
         day['suitability_score'] = get_suitability(day)
 
     return suitability_data
+
+
+def add_suitability_scores(processed_data):
+    """
+    This function adds the overall suitability scores to the processed weather data.
+
+    Args:
+        processed_data (list): Processed weather data for a list of days.
+    Returns:
+        list: Processed data with overall suitability scores for each day.
+    """
+
+    for day in processed_data:
+        suitability_data = calculate_suitability_data(day)
+        day['suitability_score'] = get_suitability(suitability_data)
+    return processed_data
+
+
+def write_json_to_file(data, filepath=None):
+    """
+    This function writes a list of JSON objects to a file.
+
+    Args:
+        data (list): A list of JSON objects.
+        filepath (str, optional): The path of the file to write to. If not provided, the function will construct a filename using the start and end dates from the data.
+    """
+    if filepath is None:
+        start_date = datetime.strptime(data[0]['date'], '%Y-%m-%d').date()
+        end_date = datetime.strptime(data[-1]['date'], '%Y-%m-%d').date()
+        filepath = f'output_data/results_{start_date}_to_{end_date}.json'
+
+    with open(filepath, 'w') as file:
+        json.dump(data, file, indent=4)
