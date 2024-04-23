@@ -365,6 +365,7 @@ def calculate_suitability_data(processed_data):
     )
 
     suitability = {
+        "date": processed_data['date'],
         "avg_cloud": avg_cloud_suitability,
         "min_cloud": min_cloud_suitability,
         "max_cloud": max_cloud_suitability,
@@ -379,7 +380,7 @@ def calculate_suitability_data(processed_data):
     return suitability
 
 
-def getSuitability(suitability_data):
+def get_suitability(suitability_data):
     """
     This function calculates the overall suitability score based on the individual suitability scores for each condition.
     The overall suitability score is the weighted sum of the individual suitability scores.
@@ -391,5 +392,23 @@ def getSuitability(suitability_data):
     """
     
     weights = config.WEIGHTS
-    suitability_score = sum([suitability_data[condition] * weights[condition] for condition in suitability_data])
+    suitability_score = sum([suitability_data[condition] * weights[condition] 
+                             for condition in suitability_data if condition in weights])
     return suitability_score
+
+
+def get_suitability_data(calculated_data):
+    """
+    This function calculates the suitability scores for a list of calculated data.
+
+    Args:
+        calculated_data (list): Processed weather data for each day.
+    Returns:
+        list: Suitability scores for each day.
+    """
+    suitability_data = [calculate_suitability_data(day) for day in calculated_data]
+
+    for day in suitability_data:
+        day['suitability_score'] = get_suitability(day)
+
+    return suitability_data
