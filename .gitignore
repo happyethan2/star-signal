@@ -5,3 +5,4 @@ project/example_forecast.json
 __pycache__
 .DS_Store
 project/output_data
+recent_forecast.json
