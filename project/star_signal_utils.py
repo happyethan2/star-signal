@@ -131,22 +131,18 @@ def process_weather_data(weather_data, days_from_today=None):
             # Parse moonrise and moonset into datetime objects
             moonrise_time = datetime.strptime(f"{date} {moonrise}", "%Y-%m-%d %I:%M %p")
             moonset_time = datetime.strptime(f"{date} {moonset}", "%Y-%m-%d %I:%M %p")
+            sunset_time = datetime.strptime(f"{date} {sunset}", "%Y-%m-%d %I:%M %p")
 
             # Handle case where moonsets after midnight by adding a day
+            # E: moonset = 00:30, moonrise = 18:00
             if moonset_time < moonrise_time:
                 moonset_time += timedelta(days=1)
-            
-            
 
 
             # Round sunset time + 1h up to the nearest hour
-            sunset_time = datetime.strptime(f"{date} {sunset}", "%Y-%m-%d %I:%M %p")
             rounded_time = (sunset_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
             temp_time_str = rounded_time.strftime("%Y-%m-%d %H:%M")
             hour_data = {item['time']: item for item in daily_forecast['hour']}
-
-            if moonset_time < sunset_time:
-                meme = None
 
             # Match each hour post-sunset to the corresponding data
             if temp_time_str in hour_data:
