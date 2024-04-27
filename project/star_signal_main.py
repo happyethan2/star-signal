@@ -1,4 +1,5 @@
 import star_signal_utils as utils
+import pushover_utils as notifs
 import config
 import json
 
@@ -28,3 +29,8 @@ suitabilities_json_pretty = json.dumps(suitabilities_json, indent=4)
 # print(suitabilities_json_pretty)
 
 utils.write_json_to_file(results_with_scores)
+
+notification = utils.get_notification(results_with_scores)
+notification = utils.generate_summary_notification(results_with_scores, 7)
+
+notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan')

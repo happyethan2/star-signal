@@ -108,6 +108,45 @@ def process_weather_data(weather_data, days_from_today=None):
         dict: Processed weather data for the specified day or all days in the forecast.
     """
 
+    def parse_astro_times(date, astro):
+        """
+        Parses sunset, moonrise, and moonset times from astronomical data.
+
+        Args:
+            date (str): The date for which the times are being parsed.
+            astro (dict): Astronomical data containing sunset, moonrise, and moonset times.
+
+        Returns:
+            tuple: (sunset_time, moonrise_time, moonset_time) as datetime objects or None if parsing fails.
+        """
+        sunset_time, moonrise_time, moonset_time = None, None, None
+
+        try:
+            if 'sunset' in astro and astro['sunset'] not in ["No sunset", ""]:
+                sunset_time = datetime.strptime(f"{date} {astro['sunset']}", "%Y-%m-%d %I:%M %p")
+        except ValueError:
+            sunset_time = None
+
+        try:
+            if 'moonrise' in astro and astro['moonrise'] not in ["No moonrise", ""]:
+                moonrise_time = datetime.strptime(f"{date} {astro['moonrise']}", "%Y-%m-%d %I:%M %p")
+        except ValueError:
+            moonrise_time = None
+
+        try:
+            if 'moonset' in astro and astro['moonset'] not in ["No moonset", ""]:
+                moonset_time = datetime.strptime(f"{date} {astro['moonset']}", "%Y-%m-%d %I:%M %p")
+                # Handle case where moonsets after midnight by adding a day
+                # E: moonset = 00:30, moonrise = 18:00
+                if moonrise_time and moonset_time < moonrise_time:
+                    moonset_time += timedelta(days=1)
+        except ValueError:
+            moonset_time = None
+
+        return sunset_time, moonrise_time, moonset_time
+
+
+
     results = []
     mins_per_hour = 60
 
@@ -129,14 +168,7 @@ def process_weather_data(weather_data, days_from_today=None):
             date = daily_forecast['date']
 
             # Parse moonrise and moonset into datetime objects
-            moonrise_time = datetime.strptime(f"{date} {moonrise}", "%Y-%m-%d %I:%M %p")
-            moonset_time = datetime.strptime(f"{date} {moonset}", "%Y-%m-%d %I:%M %p")
-            sunset_time = datetime.strptime(f"{date} {sunset}", "%Y-%m-%d %I:%M %p")
-
-            # Handle case where moonsets after midnight by adding a day
-            # E: moonset = 00:30, moonrise = 18:00
-            if moonset_time < moonrise_time:
-                moonset_time += timedelta(days=1)
+            sunset_time, moonrise_time, moonset_time = parse_astro_times(date, astro)
 
 
             # Round sunset time + 1h up to the nearest hour
@@ -155,9 +187,11 @@ def process_weather_data(weather_data, days_from_today=None):
                 humidity = selected_hour['humidity']
                 visibility_km = selected_hour['vis_km']
 
-                # Determine average cloud cover and moon presence
+                # Determine average cloud cover, dewpoint and moon presence
                 cloud_values = []
                 dewpoint_values = []
+                total_visible_minutes = 0
+
                 for i in range(5):
                     hour = rounded_time + timedelta(hours=i)
                     hour_str = hour.strftime("%Y-%m-%d %H:%M")
@@ -165,18 +199,13 @@ def process_weather_data(weather_data, days_from_today=None):
                         cloud_values.append(hour_data[hour_str]['cloud'])
                         dewpoint_values.append(hour_data[hour_str]['dewpoint_c'])
                         
-                        # Calculate moon presence within the hour
-                        moonrise_time = datetime.strptime(f"{date} {moonrise}", "%Y-%m-%d %I:%M %p")
-                        moonset_time = datetime.strptime(f"{date} {moonset}", "%Y-%m-%d %I:%M %p")
-                        if moonset_time < moonrise_time:  # Adjust for moonset after midnight
-                            moonset_time += timedelta(days=1)
-                        
                         # Check if moon is visible during this hour
-                        if moonrise_time < hour + timedelta(hours=1) and moonset_time > hour:
-                            visible_start = max(moonrise_time, hour)
-                            visible_end = min(moonset_time, hour + timedelta(hours=1))
-                            visible_minutes = (visible_end - visible_start).total_seconds() / 60
-                            total_visible_minutes += visible_minutes
+                        if moonrise_time is not None:
+                            if moonrise_time < hour + timedelta(hours=1) and moonset_time > hour:
+                                visible_start = max(moonrise_time, hour)
+                                visible_end = min(moonset_time, hour + timedelta(hours=1))
+                                visible_minutes = (visible_end - visible_start).total_seconds() / 60
+                                total_visible_minutes += visible_minutes
 
                 # Calculate averages and percentages
                 if cloud_values:
@@ -430,6 +459,65 @@ def add_suitability_scores(processed_data):
         suitability_data = calculate_suitability_data(day)
         day['suitability_score'] = get_suitability(suitability_data)
     return processed_data
+
+
+def get_notification(results):
+    """
+    This function generates a notification based on the suitability scores for the upcoming days.
+
+    Args:
+        results (list): Processed weather data with overall suitability scores for each day.
+    Returns:
+        str: Notification message based on the upcoming astrophotography potential.
+    """
+
+    notifications = []
+    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+    for day in results:
+        day_of_week = datetime.strptime(day["date"], "%Y-%m-%d").weekday()
+        if day_of_week in (4, 5):  # 4 is Friday, 5 is Saturday
+            if day["suitability_score"] >= 70:
+                day_name = days_of_week[day_of_week]
+                notifications.append(
+                    f"{day_name}: {day['avg_cloud']}% avg_cloud, {day['moon_presence']}% moon presence, "
+                    f"{day['suitability_score']:.1f}% overall potential"
+                )
+
+    if len(notifications) == 0:
+        notification = "No upcoming astrophotography potential in the next 7 days"
+    elif len(notifications) == 1:
+        notification = f"This {notifications[0].split(':')[0]} looks promising with " + notifications[0].split(':')[1]
+    else:
+        # Handle both Friday and Saturday
+        combined_notifications = ' and '.join(notifications)
+        notification = f"This {combined_notifications.replace(': ', ' looks promising with ')}, respectively"
+
+    return notification
+
+
+def generate_summary_notification(results, day_index):
+    """
+    Generates a summary notification for a specific day from the forecast data.
+
+    Args:
+        results (list of dicts): List of forecast data for multiple days.
+        day_index (int): Day index (1-7) to generate the summary for.
+
+    Returns:
+        str: A summary notification for the specified day.
+    """
+    if day_index < 1 or day_index > len(results):
+        return "Invalid day index: Please choose a number from 1 to 7."
+
+    # Adjust for zero-indexing
+    day_data = results[day_index - 1]
+    date = day_data["date"]
+    formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime('%A %d-%b')  # Format day of week and date
+
+    # Constructing the notification message
+    notification = f"{formatted_date}: cloud {day_data['avg_cloud']}%, moon {day_data['moon_presence']}%, temp {day_data['temp_c']}°C, wind {day_data['wind_speed_kph']}kph, overall {day_data['suitability_score']:.1f}%"
+    return notification
 
 
 def write_json_to_file(data, filepath=None):
