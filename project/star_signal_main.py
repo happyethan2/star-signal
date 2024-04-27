@@ -31,6 +31,6 @@ suitabilities_json_pretty = json.dumps(suitabilities_json, indent=4)
 utils.write_json_to_file(results_with_scores)
 
 notification = utils.get_notification(results_with_scores)
-notification = utils.generate_summary_notification(results_with_scores, 7)
+notification = utils.generate_summary_notification(results_with_scores, 6)
 
 notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan')
