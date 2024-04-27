@@ -513,7 +513,7 @@ def generate_summary_notification(results, day_index):
     # Adjust for zero-indexing
     day_data = results[day_index - 1]
     date = day_data["date"]
-    formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime('%A %d-%b')  # Format day of week and date
+    formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime('%A %d-%b')
 
     # Constructing the notification message
     notification = f"{formatted_date}: cloud {day_data['avg_cloud']}%, moon {day_data['moon_presence']}%, temp {day_data['temp_c']}°C, wind {day_data['wind_speed_kph']}kph, overall {day_data['suitability_score']:.1f}%"
