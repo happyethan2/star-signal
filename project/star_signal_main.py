@@ -6,12 +6,12 @@ import json
 location = config.LOCATIONS['Adelaide']
 days = '7'
 
-# forecast = utils.get_forecast(location, days)
+forecast = utils.get_forecast(location, days)
 # utils.write_json_to_file(forecast, 'recent_forecast.json')
-print(f'Sum of Weights: {sum(config.WEIGHTS.values())}')
+# print(f'Sum of Weights: {sum(config.WEIGHTS.values())}')
 
-with open('recent_forecast.json', 'r') as file:
-    forecast = json.load(file)
+# with open('recent_forecast.json', 'r') as file:
+#     forecast = json.load(file)
 
 results = utils.process_weather_data(forecast)
 result_pretty = json.dumps(results, indent=4)

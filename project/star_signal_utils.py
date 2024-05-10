@@ -200,7 +200,7 @@ def process_weather_data(weather_data, days_from_today=None):
                         dewpoint_values.append(hour_data[hour_str]['dewpoint_c'])
                         
                         # Check if moon is visible during this hour
-                        if moonrise_time is not None:
+                        if moonrise_time is not None and moonset_time is not None:
                             if moonrise_time < hour + timedelta(hours=1) and moonset_time > hour:
                                 visible_start = max(moonrise_time, hour)
                                 visible_end = min(moonset_time, hour + timedelta(hours=1))
@@ -516,7 +516,7 @@ def generate_summary_notification(results, day_index):
     formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime('%A %d-%b')
 
     # Constructing the notification message
-    notification = f"{formatted_date} | cloud {day_data['avg_cloud']}%, moon {day_data['moon_presence']}%, temp {day_data['temp_c']}°C, wind {day_data['wind_speed_kph']}kph, overall {day_data['suitability_score']:.1f}%"
+    notification = f"{formatted_date} | Total {day_data['suitability_score']:.1f}%, Cloud {day_data['avg_cloud']:.0f}%, Moon {day_data['moon_presence']:.0f}%, Temp {day_data['temp_c']}°C, Wind {day_data['wind_speed_kph']}kph"
     return notification
 
 
@@ -527,6 +527,8 @@ def write_json_to_file(data, filepath=None):
     Args:
         data (list): A list of JSON objects.
         filepath (str, optional): The path of the file to write to. If not provided, the function will construct a filename using the start and end dates from the data.
+    Returns:
+        void
     """
     if filepath is None:
         start_date = datetime.strptime(data[0]['date'], '%Y-%m-%d').date()
