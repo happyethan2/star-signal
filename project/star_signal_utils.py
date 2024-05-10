@@ -206,6 +206,18 @@ def process_weather_data(weather_data, days_from_today=None):
                                 visible_end = min(moonset_time, hour + timedelta(hours=1))
                                 visible_minutes = (visible_end - visible_start).total_seconds() / 60
                                 total_visible_minutes += visible_minutes
+                        elif moonrise_time is not None and moonset_time is None:
+                            if moonrise_time < hour + timedelta(hours=1):
+                                visible_start = max(moonrise_time, hour)
+                                visible_end = hour + timedelta(hours=1)
+                                visible_minutes = (visible_end - visible_start).total_seconds() / 60
+                                total_visible_minutes += visible_minutes
+                        elif moonrise_time is None and moonset_time is not None:
+                            if moonset_time > hour:
+                                visible_start = hour
+                                visible_end = min(moonset_time, hour + timedelta(hours=1))
+                                visible_minutes = (visible_end - visible_start).total_seconds() / 60
+                                total_visible_minutes += visible_minutes
 
                 # Calculate averages and percentages
                 if cloud_values:
