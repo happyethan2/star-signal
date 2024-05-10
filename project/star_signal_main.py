@@ -30,7 +30,10 @@ suitabilities_json_pretty = json.dumps(suitabilities_json, indent=4)
 
 utils.write_json_to_file(results_with_scores)
 
-notification = utils.get_notification(results_with_scores)
-notification = utils.generate_summary_notification(results_with_scores, 6)
+days = 7
+total_score = results_with_scores[days - 1]['suitability_score']
 
-notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan')
+notification = utils.get_notification(results_with_scores)
+notification = utils.generate_summary_notification(results_with_scores, days)
+
+notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan') if total_score >= 50.0 else None
