@@ -2,6 +2,10 @@ import star_signal_utils as utils
 import pushover_utils as notifs
 import config
 import json
+import logging
+
+# setup logging
+logging.basicConfig(filename='forecast.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 def check_forecast():
     location = config.LOCATIONS['Adelaide']
@@ -44,13 +48,13 @@ import time
 def main():
     while True:
         try:
-            print("Running task...")
+            logging.info("Running task...")
             check_forecast()
-            print("Task completed.")
+            logging.info("Task completed.")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
         finally:
-            print("Sleeping for 24 hours...")
+            logging.info("Sleeping for 24 hours...")
             time.sleep(86400)  # Sleep for a day
 
 if __name__ == "__main__":
