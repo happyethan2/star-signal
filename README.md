@@ -36,6 +36,7 @@ The project consists of several Python scripts:
 Run `star_signal_main.py` to start the process:
    python star_signal_main.py
 This script will automatically fetch weather data, calculate the suitability score, and send notifications if the conditions are favorable.
+Output will be stored in `forecast.log` and the script is designed to run indefinitely in a try-except block with a time.sleep() for one day.
 
 ## Notifications
 Notifications are sent only when the suitability score for a night is above 50%. They include detailed information such as cloud coverage, moon presence, and overall potential, helping you plan your astrophotography sessions effectively.
