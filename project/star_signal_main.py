@@ -55,7 +55,7 @@ def task():
         logging.error(f"An error occurred: {e}")
 
 def main():
-    schedule.every().day.at("11:04").do(task)
+    schedule.every().day.at("11:08").do(task)
     
     while True:
         schedule.run_pending()
