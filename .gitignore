@@ -6,3 +6,4 @@ __pycache__
 .DS_Store
 project/output_data
 recent_forecast.json
+project/starsignalkeypair.pem
