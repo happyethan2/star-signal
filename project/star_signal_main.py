@@ -67,11 +67,11 @@ def main():
                 task_done_today = True
         
         # reset flag after 10am following day
-        if current_time >+ run_time - timedelta(minutes=30) and task_done_today:
+        if current_time >= run_time - timedelta(minutes=30) and task_done_today:
             task_done_today = False
 
         # sleep to avoid cpu use
-        time.sleep(300)  # 5min
+        time.sleep(3)  # 5min
 
 
 if __name__ == "__main__":
