@@ -59,7 +59,7 @@ def main():
 
     while True:
         current_time = datetime.now()
-        run_time = current_time.replace(hour=11, minute=51, second=0, microsecond=0)
+        run_time = current_time.replace(hour=11, minute=57, second=0, microsecond=0)
 
         if current_time >= run_time:
             if not task_done_today:
