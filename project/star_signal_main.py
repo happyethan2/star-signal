@@ -44,18 +44,23 @@ def check_forecast():
     notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan') if total_score >= 10.0 else None
 
 import time
+import schedule
+
+def task():
+    try:
+        logging.info("Running task...")
+        check_forecast()
+        logging.info("Task completed.")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
 
 def main():
+    schedule.every().day.at("11:04").do(task)
+    
     while True:
-        try:
-            logging.info("Running task...")
-            check_forecast()
-            logging.info("Task completed.")
-        except Exception as e:
-            logging.error(f"An error occurred: {e}")
-        finally:
-            logging.info("Sleeping for 24 hours...")
-            time.sleep(86400)  # Sleep for a day
+        schedule.run_pending()
+        time.sleep(59) # sleep for 59sec to avoid running multiple times
+
 
 if __name__ == "__main__":
     main()
