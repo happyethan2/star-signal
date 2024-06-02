@@ -59,15 +59,15 @@ def main():
 
     while True:
         current_time = datetime.now()
-        run_time = current_time.replace(hour=11, minute=57, second=0, microsecond=0)
+        run_time = current_time.replace(hour=12, minute=2, second=0, microsecond=0)
 
         if current_time >= run_time:
             if not task_done_today:
                 task()
                 task_done_today = True
         
-        # reset flag after 10am following day
-        if current_time >= run_time - timedelta(minutes=30) and task_done_today:
+        # reset flag after 9:30am following day
+        if current_time >= run_time - timedelta(minutes=30) + timedelta(days=1) and task_done_today:
             task_done_today = False
 
         # sleep to avoid cpu use
