@@ -44,7 +44,7 @@ def check_forecast():
     notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan') if total_score >= 10.0 else None
 
 import time
-import schedule
+from datetime import datetime, timedelta
 
 def task():
     try:
@@ -55,11 +55,23 @@ def task():
         logging.error(f"An error occurred: {e}")
 
 def main():
-    schedule.every().day.at("11:08").do(task)
-    
+    task_done_today = False
+
     while True:
-        schedule.run_pending()
-        time.sleep(59) # sleep for 59sec to avoid running multiple times
+        current_time = datetime.now()
+        run_time = current_time.replace(hour=11, minute=51, second=0, microsecond=0)
+
+        if current_time >= run_time:
+            if not task_done_today:
+                task()
+                task_done_today = True
+        
+        # reset flag after 10am following day
+        if current_time >+ run_time - timedelta(minutes=30) and task_done_today:
+            task_done_today = False
+
+        # sleep to avoid cpu use
+        time.sleep(300)  # 5min
 
 
 if __name__ == "__main__":
