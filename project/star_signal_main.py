@@ -59,7 +59,7 @@ def main():
 
     while True:
         current_time = datetime.now()
-        run_time = current_time.replace(hour=12, minute=2, second=0, microsecond=0)
+        run_time = current_time.replace(hour=10, minute=0, second=0, microsecond=0)
 
         if current_time >= run_time:
             if not task_done_today:
@@ -71,7 +71,7 @@ def main():
             task_done_today = False
 
         # sleep to avoid cpu use
-        time.sleep(3)  # 5min
+        time.sleep(300)  # 5min
 
 
 if __name__ == "__main__":
