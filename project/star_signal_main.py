@@ -41,7 +41,7 @@ def check_forecast():
     notification = utils.get_notification(results_with_scores)
     notification = utils.generate_summary_notification(results_with_scores, days)
     
-    notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan') if total_score >= 10.0 else None
+    notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan') if total_score >= 0.0 else None
 
 
 def task():
