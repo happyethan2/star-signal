@@ -24,7 +24,7 @@ def check_forecast():
     
     results_with_scores = utils.add_suitability_scores(results)
     results_with_scores_pretty = json.dumps(results_with_scores, indent=4)
-    print(results_with_scores_pretty)
+    # print(results_with_scores_pretty)
     
     suitabilities_json = utils.get_suitability_data(results)
     suitabilities_json_pretty = json.dumps(suitabilities_json, indent=4)
