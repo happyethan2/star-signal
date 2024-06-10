@@ -6,8 +6,13 @@ import logging
 from datetime import datetime, timedelta
 import time
 
-# setting up detailed logging
-logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s')
+# setting up detailed logging with custom datetime format
+logging.basicConfig(
+    filename='output.log',
+    level=logging.DEBUG,
+    format='%(asctime)s: %(levelname)s: %(message)s',
+    datefmt='%d%b%Y (%I:%M%p)'
+)
 
 def check_forecast():
     logging.debug("Checking the weather forecast...")
