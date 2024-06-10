@@ -39,7 +39,7 @@ def check_forecast():
     
     if total_score >= 0.0:
         notifs.send_push_notification(config.USERS['Ethan'], notification, 'Ethan')
-    logging.debug("Weather forecast checked and processed.")
+    logging.debug("Weather forecast processed, suitability score is {total_score:.2f}%")
 
 def task():
     logging.info("Running task...")

@@ -8,3 +8,4 @@ project/output_data
 recent_forecast.json
 project/starsignalkeypair.pem
 project/forecast.log
+project/output.log
