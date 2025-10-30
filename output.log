@@ -1,0 +1,50 @@
+2025-10-29 19:32:52,906: DEBUG: Starting new HTTPS connection (1): weather.visualcrossing.com:443
+2025-10-29 19:32:54,254: DEBUG: https://weather.visualcrossing.com:443 "GET /VisualCrossingWebServices/rest/services/timeline/-34.9285,138.6007?include=hours&unitGroup=metric&key=VU6ZPAFDBMEQ5T6YRGLLAF8KG&elements=datetime,temp,humidity,dew,windspeed,visibility,cloudcover,sunrise,sunset,moonrise,moonset,moonphase&forecastDays=7 HTTP/1.1" 200 6459
+2025-10-29 19:34:03,481: DEBUG: Starting new HTTPS connection (1): weather.visualcrossing.com:443
+2025-10-29 19:34:04,805: DEBUG: https://weather.visualcrossing.com:443 "GET /VisualCrossingWebServices/rest/services/timeline/-34.9285,138.6007?include=hours&unitGroup=metric&key=VU6ZPAFDBMEQ5T6YRGLLAF8KG&elements=datetime,temp,humidity,dew,windspeed,visibility,cloudcover,sunrise,sunset,moonrise,moonset,moonphase&forecastDays=7 HTTP/1.1" 200 6459
+2025-10-29 20:23:51,830: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 20:23:51,833: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 20:32:33,237: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 20:32:33,239: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 21:05:46,833: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 21:09:04,643: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 21:09:04,655: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 21:10:14,365: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 21:10:14,377: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 21:13:08,404: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 21:13:08,416: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 21:14:50,506: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 21:14:50,519: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:05:42,333: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:05:42,333: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 22:05:42,339: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-29 22:05:42,354: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:08:06,837: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:08:06,837: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 22:08:06,837: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-29 22:08:06,848: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:08:06,849: INFO: [features] 2025-11-05 start=2025-11-05 20:00  avg_cloud=1.1 min_cloud=0.0 max_cloud=2.3 moon_presence=80.0% illum=99.1% temp=14.9C dew_risk=-2.3C wind=8.3 kph hum=77.5% vis=24.1 km
+2025-10-29 22:11:48,464: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:11:48,464: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 22:11:48,465: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-29 22:11:48,476: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:12:32,991: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:12:32,991: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 22:12:32,991: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-29 22:12:33,002: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:14:52,102: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:14:52,102: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 22:14:52,103: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-29 22:14:52,114: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:17:20,090: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:17:20,090: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 22:17:20,090: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-29 22:17:20,101: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:18:23,748: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:18:23,748: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 22:18:23,749: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-29 22:18:23,759: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:21:16,057: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-29 22:21:16,058: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
+2025-10-29 22:21:16,058: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-29 22:21:16,069: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
