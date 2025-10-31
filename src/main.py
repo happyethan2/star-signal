@@ -29,32 +29,24 @@ PROMISE_WINDOWS: Dict[str, Dict[str, object]] = {
     "sunday": {
         "weekday": 6,
         "start": time(17, 0),
-        "moon_max": 5.0,
-        "cloud_max": None,
         "score_min": 0.0,
         "label": "weekend outlook",
     },
     "wednesday": {
         "weekday": 2,
-        "start": time(18, 0),
-        "moon_max": 5.0,
-        "cloud_max": 60.0,
+        "start": time(17, 0),
         "score_min": 60.0,
         "label": "mid-week update",
     },
     "thursday": {
         "weekday": 3,
-        "start": time(18, 0),
-        "moon_max": 5.0,
-        "cloud_max": 45.0,
+        "start": time(17, 0),
         "score_min": 65.0,
         "label": "thursday confidence",
     },
     "friday": {
         "weekday": 4,
-        "start": time(17, 30),
-        "moon_max": 5.0,
-        "cloud_max": 35.0,
+        "start": time(17, 00),
         "score_min": 70.0,
         "label": "final go/no-go",
     },
@@ -98,25 +90,11 @@ def _safe_float(value, default: float) -> float:
         return float(default)
 
 
-def select_promising_nights(
-    scored_days: List[dict],
-    reference: datetime,
-    rule: Dict[str, object],
-) -> List[dict]:
-    by_date: Dict[datetime.date, dict] = {}
-    for day in scored_days:
-        try:
-            parsed = datetime.strptime(day["date"], "%Y-%m-%d")
-        except (KeyError, ValueError):
-            continue
-        by_date[parsed.date()] = day
-
-    moon_max = float(rule["moon_max"])
-    cloud_max = rule["cloud_max"]
-    score_min = float(rule["score_min"])
-
+def select_promising_nights(scored_days, reference, rule):
+    by_date = {datetime.strptime(day["date"], "%Y-%m-%d").date(): day for day in scored_days if "date" in day}
+    score_min = float(rule.get("score_min", 85.0))
     weekend_dates = upcoming_weekend_dates(reference)
-    selections: List[dict] = []
+    selections = []
 
     for target in weekend_dates:
         record = by_date.get(target)
@@ -124,46 +102,16 @@ def select_promising_nights(
             logging.info("No forecast data for %s", target)
             continue
 
-        moon_presence = _safe_float(record.get("moon_presence"), default=100.0)
-        avg_cloud = _safe_float(record.get("avg_cloud"), default=100.0)
-        score = _safe_float(record.get("suitability_score"), default=0.0)
-
-        if moon_presence > moon_max:
-            logging.info(
-                "Rejecting %s (moon presence %.1f%% exceeds %.1f%%)",
-                record.get("date"),
-                moon_presence,
-                moon_max,
-            )
-            continue
-
-        if cloud_max is not None and avg_cloud > float(cloud_max):
-            logging.info(
-                "Rejecting %s (avg cloud %.1f%% exceeds %.1f%%)",
-                record.get("date"),
-                avg_cloud,
-                cloud_max,
-            )
-            continue
-
+        score = float(record.get("suitability_score", 0.0))
         if score < score_min:
-            logging.info(
-                "Rejecting %s (score %.1f below %.1f)",
-                record.get("date"),
-                score,
-                score_min,
-            )
+            logging.info("Rejecting %s (score %.1f below %.1f)", record.get("date"), score, score_min)
             continue
 
-        selections.append(
-            {
-                "date": target,
-                "score": score,
-                "avg_cloud": avg_cloud,
-                "moon_presence": moon_presence,
-                "raw": record,
-            }
-        )
+        selections.append({
+            "date": target,
+            "score": score,
+            "raw": record,
+        })
 
     return sorted(selections, key=lambda item: item["date"])
 
