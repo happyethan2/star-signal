@@ -1,55 +1,219 @@
-import config
-from src import utils
-from src import pushover_utils as notifs
-import config
-
-from src.provider_vc import fetch_visualcrossing
 import logging
+import sys
+from datetime import datetime, timedelta, time
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+from zoneinfo import ZoneInfo
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import config  # noqa: E402
+from src import pushover_utils as notifs  # noqa: E402
+from src import utils  # noqa: E402
+from src.data_store import append_forecast_history  # noqa: E402
+from src.provider_vc import fetch_visualcrossing  # noqa: E402
 
 logging.basicConfig(
-    filename='output.log',
+    filename="output.log",
     level=logging.INFO,
-    format='%(asctime)s: %(levelname)s: %(message)s',
+    format="%(asctime)s: %(levelname)s: %(message)s",
 )
 
-def build_and_score(lat, lon, days=7):
+ADEL_TZ = ZoneInfo("Australia/Adelaide")
+WEEKEND_TARGETS = (4, 5)  # Friday, Saturday
+
+# Promise definitions tighten as the week progresses (clouds must look better)
+PROMISE_WINDOWS: Dict[str, Dict[str, object]] = {
+    "sunday": {
+        "weekday": 6,
+        "start": time(17, 0),
+        "moon_max": 5.0,
+        "cloud_max": None,
+        "score_min": 0.0,
+        "label": "weekend outlook",
+    },
+    "wednesday": {
+        "weekday": 2,
+        "start": time(18, 0),
+        "moon_max": 5.0,
+        "cloud_max": 60.0,
+        "score_min": 60.0,
+        "label": "mid-week update",
+    },
+    "thursday": {
+        "weekday": 3,
+        "start": time(18, 0),
+        "moon_max": 5.0,
+        "cloud_max": 45.0,
+        "score_min": 65.0,
+        "label": "thursday confidence",
+    },
+    "friday": {
+        "weekday": 4,
+        "start": time(17, 30),
+        "moon_max": 5.0,
+        "cloud_max": 35.0,
+        "score_min": 70.0,
+        "label": "final go/no-go",
+    },
+}
+
+
+def build_and_score(lat: float, lon: float, days: int = 7) -> List[dict]:
     data = fetch_visualcrossing(lat, lon, days=days)
     logging.info("Fetched data for lat=%.4f lon=%.4f days=%d", lat, lon, days)
     processed = utils.process_weather_data(data)
     scored = utils.add_suitability_scores(processed)
     return scored
 
-def notify_if_good(scored_days, user_name, user_key, threshold_pct=None):
-    import logging
-    threshold = threshold_pct if threshold_pct is not None else getattr(config, "NOTIFY_THRESHOLD", 60.0)
 
-    # keep only the days above threshold
-    good = []
-    for d in scored_days:
+def get_adelaide_now() -> datetime:
+    return datetime.now(tz=ADEL_TZ)
+
+
+def current_promise_window(now: datetime) -> Optional[Tuple[str, Dict[str, object]]]:
+    for label, rule in PROMISE_WINDOWS.items():
+        if now.weekday() == rule["weekday"] and now.time() >= rule["start"]:
+            return label, rule
+    return None
+
+
+def upcoming_weekend_dates(reference: datetime) -> List[datetime.date]:
+    targets: List[datetime.date] = []
+    for target_weekday in WEEKEND_TARGETS:
+        offset = (target_weekday - reference.weekday()) % 7
+        target_date = (reference + timedelta(days=offset)).date()
+        targets.append(target_date)
+    return targets
+
+
+def _safe_float(value, default: float) -> float:
+    try:
+        if value is None:
+            raise ValueError("None value")
+        return float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def select_promising_nights(
+    scored_days: List[dict],
+    reference: datetime,
+    rule: Dict[str, object],
+) -> List[dict]:
+    by_date: Dict[datetime.date, dict] = {}
+    for day in scored_days:
         try:
-            score = float(d.get("suitability_score", 0))
-        except (TypeError, ValueError):
-            score = 0.0
-        if score >= threshold:
-            good.append((d.get("date", "?"), score))
+            parsed = datetime.strptime(day["date"], "%Y-%m-%d")
+        except (KeyError, ValueError):
+            continue
+        by_date[parsed.date()] = day
 
-    if not good:
-        logging.info("No days exceed threshold %.1f for %s", threshold, user_name)
+    moon_max = float(rule["moon_max"])
+    cloud_max = rule["cloud_max"]
+    score_min = float(rule["score_min"])
+
+    weekend_dates = upcoming_weekend_dates(reference)
+    selections: List[dict] = []
+
+    for target in weekend_dates:
+        record = by_date.get(target)
+        if not record:
+            logging.info("No forecast data for %s", target)
+            continue
+
+        moon_presence = _safe_float(record.get("moon_presence"), default=100.0)
+        avg_cloud = _safe_float(record.get("avg_cloud"), default=100.0)
+        score = _safe_float(record.get("suitability_score"), default=0.0)
+
+        if moon_presence > moon_max:
+            logging.info(
+                "Rejecting %s (moon presence %.1f%% exceeds %.1f%%)",
+                record.get("date"),
+                moon_presence,
+                moon_max,
+            )
+            continue
+
+        if cloud_max is not None and avg_cloud > float(cloud_max):
+            logging.info(
+                "Rejecting %s (avg cloud %.1f%% exceeds %.1f%%)",
+                record.get("date"),
+                avg_cloud,
+                cloud_max,
+            )
+            continue
+
+        if score < score_min:
+            logging.info(
+                "Rejecting %s (score %.1f below %.1f)",
+                record.get("date"),
+                score,
+                score_min,
+            )
+            continue
+
+        selections.append(
+            {
+                "date": target,
+                "score": score,
+                "avg_cloud": avg_cloud,
+                "moon_presence": moon_presence,
+                "raw": record,
+            }
+        )
+
+    return sorted(selections, key=lambda item: item["date"])
+
+
+def build_promise_message(city: str, rule_label: str, nights: List[dict]) -> str:
+    parts = []
+    for night in nights:
+        day_str = night["date"].strftime("%a %d")
+        parts.append(f"{day_str} {night['score']:.0f}% (cloud {night['avg_cloud']:.0f}%)")
+    fragment = " | ".join(parts)
+    return f"{city} {rule_label} (moonless): {fragment}"
+
+
+def notify_weekend_promise(
+    scored_days: List[dict],
+    city: str,
+    user_name: str,
+    user_key: str,
+    now: datetime,
+    window: Optional[Tuple[str, Dict[str, object]]] = None,
+) -> int:
+    active_window = window or current_promise_window(now)
+    if not active_window:
+        logging.info("No promise window active at %s", now)
         return 0
 
-    # concise message: date + score
-    lines = [f"{dt}: {s:.1f}" for dt, s in sorted(good)]
-    message = "Astrophotography conditions (≥{:.0f}):\n{}".format(threshold, "\n".join(lines))
+    label, rule = active_window
+    nights = select_promising_nights(scored_days, now, rule)
+    if not nights:
+        logging.info("No promising nights for %s in %s window", city, label)
+        return 0
+
+    message = build_promise_message(city, rule["label"], nights)
     notifs.send_push_notification(user_key, message, user_name=user_name)
-    return len(good)
+    logging.info("Sent %s notification to %s: %s", label, user_name, message)
+    return len(nights)
 
 
 def main():
+    now = get_adelaide_now()
+    window = current_promise_window(now)
+    window_label = window[0] if window else None
+
     for name, user_key in config.USERS.items():
         for city, coords in config.LOCATIONS.items():
-            lat, lon = [float(x) for x in coords.split(',')]
+            lat, lon = [float(x) for x in coords.split(",")]
             scored = build_and_score(lat, lon, days=7)
-            notify_if_good(scored, name, user_key, config.NOTIFY_THRESHOLD)
+            append_forecast_history(city, now.isoformat(), scored, window_label)
+            notify_weekend_promise(scored, city, name, user_key, now, window)
+
 
 if __name__ == "__main__":
     main()

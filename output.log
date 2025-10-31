@@ -48,3 +48,58 @@
 2025-10-29 22:21:16,058: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\test.json
 2025-10-29 22:21:16,058: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
 2025-10-29 22:21:16,069: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-30 22:35:02,511: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-30 22:35:02,512: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\src\data\test.json
+2025-10-30 22:35:02,517: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-30 22:35:02,527: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-30 22:35:02,534: INFO: Rejecting 2025-10-31 (moon presence 80.0% exceeds 5.0%)
+2025-10-30 22:35:02,535: INFO: Rejecting 2025-11-01 (moon presence 80.0% exceeds 5.0%)
+2025-10-30 22:35:02,535: INFO: No promising nights for Adelaide in thursday window
+2025-10-30 22:46:10,634: INFO: [provider] mode=OFFLINE lat=-34.9285 lon=138.6007 days=7
+2025-10-30 22:46:10,634: INFO: OFFLINE mode: loading C:\Users\Ethan\Documents\Projects\star-signal-refactor\src\data\test.json
+2025-10-30 22:46:10,635: INFO: [provider] raw_days=8 elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)
+2025-10-30 22:46:10,645: INFO: Fetched data for lat=-34.9285 lon=138.6007 days=7
+2025-10-30 22:46:10,647: INFO: Rejecting 2025-10-31 (moon presence 80.0% exceeds 5.0%)
+2025-10-30 22:46:10,647: INFO: Rejecting 2025-11-01 (moon presence 80.0% exceeds 5.0%)
+2025-10-30 22:46:10,647: INFO: No promising nights for Adelaide in thursday window
+2025-10-30 23:05:35,612: INFO: Sent friday notification to Ethan: Adelaide final go/no-go (moonless): Fri 21 82% (cloud 28%) | Sat 22 82% (cloud 28%)
+2025-10-30 23:05:35,613: INFO: Rejecting 2025-02-21 (moon presence 15.0% exceeds 5.0%)
+2025-10-30 23:05:35,613: INFO: Rejecting 2025-02-22 (moon presence 15.0% exceeds 5.0%)
+2025-10-30 23:05:35,613: INFO: No promising nights for Adelaide in friday window
+2025-10-30 23:05:35,613: INFO: No promise window active at 2025-02-18 12:00:00+10:30
+2025-10-30 23:05:35,613: INFO: Sent sunday notification to Ethan: Adelaide weekend outlook (moonless): Fri 21 58% (cloud 75%) | Sat 22 58% (cloud 75%)
+2025-10-30 23:05:35,614: INFO: Rejecting 2025-02-21 (score 60.0 below 65.0)
+2025-10-30 23:05:35,614: INFO: Rejecting 2025-02-22 (score 60.0 below 65.0)
+2025-10-30 23:05:35,614: INFO: No promising nights for Adelaide in thursday window
+2025-10-30 23:05:35,614: INFO: Rejecting 2025-02-21 (avg cloud 75.0% exceeds 60.0%)
+2025-10-30 23:05:35,614: INFO: Rejecting 2025-02-22 (avg cloud 75.0% exceeds 60.0%)
+2025-10-30 23:05:35,614: INFO: No promising nights for Adelaide in wednesday window
+2025-10-30 23:05:35,615: INFO: Sent wednesday notification to Ethan: Adelaide mid-week update (moonless): Fri 21 72% (cloud 55%) | Sat 22 72% (cloud 55%)
+2025-10-30 23:07:51,929: INFO: Sent friday notification to Ethan: Adelaide final go/no-go (moonless): Fri 21 82% (cloud 28%) | Sat 22 82% (cloud 28%)
+2025-10-30 23:07:51,930: INFO: Rejecting 2025-02-21 (moon presence 15.0% exceeds 5.0%)
+2025-10-30 23:07:51,930: INFO: Rejecting 2025-02-22 (moon presence 15.0% exceeds 5.0%)
+2025-10-30 23:07:51,930: INFO: No promising nights for Adelaide in friday window
+2025-10-30 23:07:51,930: INFO: No promise window active at 2025-02-18 12:00:00+10:30
+2025-10-30 23:07:51,930: INFO: Sent sunday notification to Ethan: Adelaide weekend outlook (moonless): Fri 21 58% (cloud 75%) | Sat 22 58% (cloud 75%)
+2025-10-30 23:07:51,930: INFO: Rejecting 2025-02-21 (score 60.0 below 65.0)
+2025-10-30 23:07:51,930: INFO: Rejecting 2025-02-22 (score 60.0 below 65.0)
+2025-10-30 23:07:51,930: INFO: No promising nights for Adelaide in thursday window
+2025-10-30 23:07:51,930: INFO: Rejecting 2025-02-21 (avg cloud 75.0% exceeds 60.0%)
+2025-10-30 23:07:51,931: INFO: Rejecting 2025-02-22 (avg cloud 75.0% exceeds 60.0%)
+2025-10-30 23:07:51,931: INFO: No promising nights for Adelaide in wednesday window
+2025-10-30 23:07:51,931: INFO: Rejecting 2025-02-22 (avg cloud 75.0% exceeds 60.0%)
+2025-10-30 23:07:51,931: INFO: Sent wednesday notification to Ethan: Adelaide mid-week update (moonless): Fri 21 72% (cloud 55%)
+2025-10-30 23:15:52,479: INFO: Sent friday notification to Ethan: Adelaide final go/no-go (moonless): Fri 21 82% (cloud 28%) | Sat 22 82% (cloud 28%)
+2025-10-30 23:15:52,480: INFO: Rejecting 2025-02-21 (moon presence 15.0% exceeds 5.0%)
+2025-10-30 23:15:52,480: INFO: Rejecting 2025-02-22 (moon presence 15.0% exceeds 5.0%)
+2025-10-30 23:15:52,480: INFO: No promising nights for Adelaide in friday window
+2025-10-30 23:15:52,481: INFO: No promise window active at 2025-02-18 12:00:00+10:30
+2025-10-30 23:15:52,481: INFO: Sent sunday notification to Ethan: Adelaide weekend outlook (moonless): Fri 21 58% (cloud 75%) | Sat 22 58% (cloud 75%)
+2025-10-30 23:15:52,482: INFO: Rejecting 2025-02-21 (score 60.0 below 65.0)
+2025-10-30 23:15:52,482: INFO: Rejecting 2025-02-22 (score 60.0 below 65.0)
+2025-10-30 23:15:52,482: INFO: No promising nights for Adelaide in thursday window
+2025-10-30 23:15:52,482: INFO: Rejecting 2025-02-21 (avg cloud 75.0% exceeds 60.0%)
+2025-10-30 23:15:52,482: INFO: Rejecting 2025-02-22 (avg cloud 75.0% exceeds 60.0%)
+2025-10-30 23:15:52,482: INFO: No promising nights for Adelaide in wednesday window
+2025-10-30 23:15:52,483: INFO: Rejecting 2025-02-22 (avg cloud 75.0% exceeds 60.0%)
+2025-10-30 23:15:52,483: INFO: Sent wednesday notification to Ethan: Adelaide mid-week update (moonless): Fri 21 72% (cloud 55%)

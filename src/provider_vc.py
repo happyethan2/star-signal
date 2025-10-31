@@ -78,8 +78,8 @@ def fetch_visualcrossing(lat, lon, days=7):
     logger.info("[provider] mode=%s lat=%.4f lon=%.4f days=%d", mode, lat, lon, days)
 
     if OFFLINE_TESTING:
-        root = os.path.dirname(os.path.dirname(__file__))
-        test_path = os.path.join(root, "test.json")
+        data_dir = os.path.join(os.path.dirname(__file__), "data")
+        test_path = os.path.join(data_dir, "test.json")
         logging.info("OFFLINE mode: loading %s", test_path)
 
         return _load_offline(test_path, lat, lon)
