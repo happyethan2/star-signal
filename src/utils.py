@@ -87,7 +87,10 @@ def process_weather_data(weather_data, days_from_today=None):
 
             selected_hour = hour_data[temp_time_str]
             temp_c = selected_hour["temp_c"]
-            dewpoint_risk = selected_hour["dewpoint_c"] - mintemp_c
+            if mintemp_c is None or selected_hour["dewpoint_c"] is None:
+                dewpoint_risk = 0.0
+            else:
+                dewpoint_risk = selected_hour["dewpoint_c"] - mintemp_c
             wind_speed_kph = selected_hour["wind_kph"]
             humidity = selected_hour["humidity"]
             visibility_km = selected_hour["vis_km"]
