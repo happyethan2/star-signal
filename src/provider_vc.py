@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger("star_signal")
 
 
-OFFLINE_TESTING = True
+OFFLINE_TESTING = False
 
 try:
     import config as _root_cfg  # when run from src/ as a script
@@ -114,7 +114,7 @@ def fetch_visualcrossing(lat, lon, days=7):
         days_ct = len((vc_json if not OFFLINE_TESTING else vc_json).get("days", []))
         logger.info("[provider] raw_days=%d elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)", days_ct)
 
-        return _vc_to_weatherapi_like(vc_json, -34.9285, 138.6007)
+        return _vc_to_weatherapi_like(vc_json, lat, lon)
     
     except Exception as e:
         logging.error("Visual Crossing fetch failed: %s", e)
