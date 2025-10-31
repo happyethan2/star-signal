@@ -64,6 +64,7 @@ def _vc_to_weatherapi_like(vc_json, lat=None, lon=None):
 
 
 def _load_offline(path, lat, lon):
+    print(f"[diagnostic] provider: loading offline data path={path}")
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     
@@ -75,12 +76,14 @@ def _load_offline(path, lat, lon):
 
 def fetch_visualcrossing(lat, lon, days=7):
     mode = "OFFLINE" if OFFLINE_TESTING else "ONLINE"
+    print(f"[diagnostic] fetch_visualcrossing: mode={mode} lat={lat} lon={lon} days={days}")
     logger.info("[provider] mode=%s lat=%.4f lon=%.4f days=%d", mode, lat, lon, days)
 
     if OFFLINE_TESTING:
         data_dir = os.path.join(os.path.dirname(__file__), "data")
         test_path = os.path.join(data_dir, "test.json")
         logging.info("OFFLINE mode: loading %s", test_path)
+        print(f"[diagnostic] fetch_visualcrossing: offline file={test_path}")
 
         return _load_offline(test_path, lat, lon)
 
@@ -110,12 +113,15 @@ def fetch_visualcrossing(lat, lon, days=7):
         r.raise_for_status()
         vc_json = r.json()
         logging.info("Online VC fetch ok: %d days", len(vc_json.get("days", [])))
+        print(f"[diagnostic] fetch_visualcrossing: online request url={url} status={r.status_code}")
 
         days_ct = len((vc_json if not OFFLINE_TESTING else vc_json).get("days", []))
         logger.info("[provider] raw_days=%d elements=request(datetime,temp,humidity,dew,windspeed,visibility,cloudcover,moonphase)+astral(sun/moon)", days_ct)
+        print(f"[diagnostic] fetch_visualcrossing: days_returned={days_ct}")
 
         return _vc_to_weatherapi_like(vc_json, lat, lon)
     
     except Exception as e:
         logging.error("Visual Crossing fetch failed: %s", e)
+        print(f"[diagnostic] fetch_visualcrossing: exception={e}")
         raise
