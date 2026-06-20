@@ -1,45 +1,13 @@
 from __future__ import print_function
 from datetime import datetime, timedelta
-import requests, json, config, numpy as np
+import config, numpy as np
 
 # simple run-time status banner
 def log(msg):
     now = datetime.now().strftime("%H:%M:%S")
     print(f"[{now}] {msg}")
 
-### weather api - utility functions
-def send_api_request(url):
-    """Sends an API request and returns JSON or error dict."""
-    try:
-        r = requests.get(url)
-        if r.status_code == 200:
-            log(f"api request ok ({len(r.text)} bytes)")
-            return r.json()
-        else:
-            log(f"api request failed code={r.status_code}")
-            return {"error": f"status {r.status_code}"}
-    except requests.exceptions.RequestException as e:
-        log(f"api request exception: {e}")
-        return {"error": str(e)}
-
-def validate_days(days):
-    """Ensures days is an integer string between 1 and 10 inclusive."""
-    if not days.isdigit():
-        raise ValueError(f"Days '{days}' must be numeric")
-    d = int(days)
-    if not 1 <= d <= 10:
-        raise ValueError(f"Days '{days}' out of range 1–10")
-
-def get_forecast(location, days, aqi="no", alerts="no"):
-    """Retrieves weather forecast data from Weather API."""
-    validate_days(days)
-    base_url = "http://api.weatherapi.com/v1/forecast.json"
-    api_key = config.WEATHER_API_KEY
-    url = f"{base_url}?key={api_key}&q={location}&days={days}&aqi={aqi}&alerts={alerts}"
-    log(f"requesting forecast {location} for {days} days")
-    return send_api_request(url)
-
-def process_weather_data(weather_data, days_from_today=None):
+def process_weather_data(weather_data):
     """Processes raw weather data into a structured daily summary."""
 
     def parse_astro_times(date, astro):
@@ -114,9 +82,13 @@ def process_weather_data(weather_data, days_from_today=None):
                             visible_end = min(moonset_time, end)
                             total_visible_minutes += (visible_end - visible_start).total_seconds() / 60
                     elif moonrise_time and not moonset_time and moonrise_time < end:
-                        total_visible_minutes += (end - moonrise_time).total_seconds() / 60
+                        # moon rose earlier and hasn't set — clamp visible_start to window boundary
+                        visible_start = max(moonrise_time, start)
+                        total_visible_minutes += (end - visible_start).total_seconds() / 60
                     elif not moonrise_time and moonset_time and moonset_time > start:
-                        total_visible_minutes += (moonset_time - start).total_seconds() / 60
+                        # moon already up at window start — clamp visible_end to window boundary
+                        visible_end = min(moonset_time, end)
+                        total_visible_minutes += (visible_end - start).total_seconds() / 60
 
             if cloud_vals:
                 avg_cloud, min_cloud, max_cloud = (
@@ -166,10 +138,6 @@ def process_weather_data(weather_data, days_from_today=None):
         log(f"key error in data: {e}")
         return {"error": f"Missing {e}"}
 
-    if days_from_today is not None:
-        validate_days(days_from_today)
-        return results[int(days_from_today) - 1]
-
     return results
 
 def calculate_suitability_data(processed_data):
@@ -207,7 +175,7 @@ def calculate_suitability_data(processed_data):
     log(f"{s['date']}: component suitability:")
     for k, v in s.items():
         if k != "date":
-            raw = processed_data.get(k + "_kph", processed_data.get(k, None))
+            raw = processed_data.get(k + "_kph", processed_data.get(k + "_km", processed_data.get(k, None)))
             log(f"    {k:17s}: {v:6.1f}  ({raw})")
 
     return s
@@ -229,24 +197,3 @@ def add_suitability_scores(processed_data):
         log(f"{tag} {d['date']}: {total:.1f}")
     return processed_data
 
-# notification and json writer left mostly unchanged (they print concise final info)
-def get_notification(results):
-    """Generates a summary notification for high-suitability weekend days."""
-    days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
-    good=[]
-    for d in results:
-        dow = datetime.strptime(d["date"],"%Y-%m-%d").weekday()
-        if dow in (4,5) and d["suitability_score"]>=70:
-            good.append(f"{days[dow]}: {d['suitability_score']:.1f}%")
-    msg = "no good days upcoming" if not good else "  ".join(good)
-    log("notification summary: " + msg)
-    return msg
-
-def write_json_to_file(data, filepath=None):
-    """Writes data to disk."""
-    if not filepath:
-        s=datetime.strptime(data[0]['date'],'%Y-%m-%d').date()
-        e=datetime.strptime(data[-1]['date'],'%Y-%m-%d').date()
-        filepath=f"output_data/results_{s}_to_{e}.json"
-    with open(filepath,"w") as f: json.dump(data,f,indent=4)
-    log(f"wrote {len(data)} days to {filepath}")

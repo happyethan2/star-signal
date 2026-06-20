@@ -1,4 +1,5 @@
 import csv
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Iterable, Optional
 
@@ -8,6 +9,27 @@ HISTORY_PATH = DATA_DIR / "forecast_history.csv"
 
 def _ensure_data_dir() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def monday_notified_this_week(city: str, now: datetime) -> bool:
+    """Return True if a Monday notification was recorded for this city in the current calendar week."""
+    if not HISTORY_PATH.exists():
+        return False
+    week_monday = now.date() - timedelta(days=now.weekday())
+    with HISTORY_PATH.open("r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row.get("location") != city:
+                continue
+            if row.get("promise_window") != "monday":
+                continue
+            try:
+                ts = datetime.fromisoformat(row["run_timestamp"])
+                if ts.date() >= week_monday and ts.weekday() == 0:
+                    return True
+            except (ValueError, KeyError):
+                continue
+    return False
 
 
 def append_forecast_history(

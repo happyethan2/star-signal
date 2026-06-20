@@ -1,2 +1,7 @@
-testing/
 config.py
+testing/
+venv/
+__pycache__/
+*.pyc
+output.log
+data/

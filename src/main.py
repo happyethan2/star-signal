@@ -14,7 +14,8 @@ if str(ROOT) not in sys.path:
 import config  # noqa: E402
 from src import pushover_utils as notifs  # noqa: E402
 from src import utils  # noqa: E402
-from src.data_store import append_forecast_history  # noqa: E402
+from src.data_store import append_forecast_history, monday_notified_this_week  # noqa: E402
+from src.message_builder import generate_notification_message  # noqa: E402
 from src.provider_vc import fetch_visualcrossing  # noqa: E402
 
 # --- logging configuration (unchanged: still writes to output.log) ---
@@ -28,12 +29,10 @@ logging.basicConfig(
 ADEL_TZ = ZoneInfo("Australia/Adelaide")
 WEEKEND_TARGETS = (4, 5, 6)  # 4=Fri, 5=Sat, 6=Sun
 
-# notification windows by weekday/time with min score requirement
+# notification windows: Monday outlook + Wednesday follow-up (if Monday sent)
 PROMISE_WINDOWS: Dict[str, Dict[str, object]] = {
-    "sunday":    {"weekday": 6, "start": time(17, 0), "score_min": 0.0,  "label": "weekend outlook"},
-    "wednesday": {"weekday": 2, "start": time(17, 0), "score_min": 60.0, "label": "mid-week update"},
-    "thursday":  {"weekday": 3, "start": time(17, 0), "score_min": 65.0, "label": "thursday confidence"},
-    "friday":    {"weekday": 4, "start": time(17, 0), "score_min": 70.0, "label": "final go/no-go"},
+    "monday":    {"weekday": 0, "start": time(19, 0), "score_min": 0.0, "label": "weekend outlook"},
+    "wednesday": {"weekday": 2, "start": time(19, 0), "score_min": 0.0, "label": "updated forecast"},
 }
 
 
@@ -86,26 +85,14 @@ def current_promise_window(now: datetime) -> Optional[Tuple[str, Dict[str, objec
 
 
 def upcoming_weekend_dates(reference: datetime) -> List[datetime.date]:
-    """
-    return list of dates for Fri/Sat/Sun relative to 'reference'.
-    if run on Sunday (weekday==6) it also includes the next Sunday.
-    """
+    """Return [next Fri, Sat, Sun] from reference — never includes reference date itself."""
     targets: List[datetime.date] = []
-
     for target_wd in WEEKEND_TARGETS:
-        base_offset = (target_wd - reference.weekday()) % 7
-        offsets = [base_offset]
-
-        # special case: on sunday, include next sunday too
-        if base_offset == 0 and reference.weekday() == 6 and target_wd == 6:
-            offsets.append(7)
-
-        for off in offsets:
-            d = (reference + timedelta(days=off)).date()
-            if d not in targets:
-                targets.append(d)
-
-    return targets
+        offset = (target_wd - reference.weekday()) % 7
+        if offset == 0:
+            offset = 7  # skip today, target next occurrence
+        targets.append((reference + timedelta(days=offset)).date())
+    return sorted(targets)
 
 
 def _safe_float(value, default: float) -> float:
@@ -186,13 +173,13 @@ def select_promising_nights(scored_days: List[dict], reference: datetime, rule: 
 
 
 def build_promise_message(city: str, rule_label: str, nights: List[dict]) -> str:
-    """render concise message like 'Adelaide final go/no-go: Fri 01 72% (cloud 21%) | ...'"""
+    """Compact format: 'Adelaide weekend outlook — Fri:91 · Sat:87 · Sun:12'"""
+    _abbrev = {4: "Fri", 5: "Sat", 6: "Sun"}
     parts: List[str] = []
     for night in nights:
-        day_str = night["date"].strftime("%a %d")
-        parts.append(f"{day_str} {night['score']:.0f}% (cloud {night['avg_cloud']:.0f}%)")
-    fragment = " | ".join(parts)
-    return f"{city} {rule_label} (moonless): {fragment}"
+        label = _abbrev.get(night["date"].weekday(), night["date"].strftime("%a"))
+        parts.append(f"{label}:{night['score']:.0f}")
+    return f"{city} {rule_label} — {' · '.join(parts)}"
 
 
 def notify_weekend_promise(
@@ -224,6 +211,12 @@ def notify_weekend_promise(
     label, rule = active
     print(f"[diagnostic] notify_weekend_promise: window={label} rule={rule}")
 
+    # Wednesday only follows up if Monday already notified this week
+    if label == "wednesday" and not monday_notified_this_week(city, now):
+        print(f"[diagnostic] notify_weekend_promise: wednesday skipped — no monday notification found for {city} this week")
+        logging.info("Wednesday skipped: no Monday notification found for %s this week", city)
+        return 0
+
     nights, decisions = select_promising_nights(scored_days, now, rule)
     if not nights:
         logging.info("No promising nights for %s in %s window", city, label)
@@ -231,7 +224,8 @@ def notify_weekend_promise(
         return 0
 
     print(f"[diagnostic] notify_weekend_promise: nights_selected={len(nights)}")
-    message = build_promise_message(city, rule["label"], nights)
+    threshold = getattr(config, "NOTIFY_THRESHOLD", 60.0)
+    message = generate_notification_message(city, rule["label"], nights, threshold=threshold)
     print(f"[diagnostic] notify_weekend_promise: sending message='{message}'")
 
     notifs.send_push_notification(user_key, message, user_name=user_name)
