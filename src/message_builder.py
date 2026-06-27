@@ -83,6 +83,7 @@ Hard rules:
     response = client.messages.create(
         model="claude-opus-4-8",
         max_tokens=150,
+        temperature=1.0,
         messages=[{"role": "user", "content": prompt}],
     )
 

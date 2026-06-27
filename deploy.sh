@@ -5,7 +5,7 @@
 set -e
 
 SERVER="ethan@192.168.1.113"
-REMOTE_DIR="/home/ethan/star-signal"
+REMOTE_DIR="/home/ethan/apps/star-signal"
 
 ssh "$SERVER" "cd $REMOTE_DIR && git pull && venv/bin/pip install -r requirements.txt -q"
 
